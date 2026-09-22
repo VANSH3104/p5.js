@@ -11,6 +11,16 @@ const data = JSON.parse(
   fs.readFileSync(path.join(__dirname, '../docs/data.json'))
 );
 
+function processProperties(param) {
+  return param.properties?.map(prop => ({
+    name: prop.name.split('.').pop(),
+    description: descriptionString(prop.description),
+    ...typeObject(prop.type),
+    ...(prop.optional || prop.default !== undefined ? { optional: 1 } : {}),
+    ...(prop.default !== undefined && { default: prop.default })
+  }));
+}
+
 // Generate documentation used in the p5.js reference. This data will get read in
 // the p5.js-website repo: https://github.com/processing/p5.js-website/
 const htmlStrategy = {
@@ -46,7 +56,10 @@ const htmlStrategy = {
 
   processDescription: desc => descriptionString(desc),
 
-  processType: type => typeObject(type)
+  processType: (type, param) => ({
+    ...typeObject(type),
+    ...(param?.properties?.length ? { properties: processProperties(param) } : {})
+  })
 };
 
 const processed = processData(data, htmlStrategy);
@@ -219,6 +232,7 @@ function buildParamDocs(docs) {
         overload.params.forEach(param => {
           delete param.description;
           delete param.name;
+          delete param.properties;
         });
       });
 
