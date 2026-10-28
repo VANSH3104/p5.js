@@ -51,6 +51,10 @@ class ShapeCollection {
       draw: options ? (options.draw ?? false) : false
     });
     this.p5.push();
+    if (this.p5._renderer?.states) {
+      this.p5._renderer.states.fillColor = 'currentColor';
+      this.p5._renderer.states.strokeColor = 'currentColor';
+    }
     this.recorder.start();
   }
 
@@ -223,9 +227,9 @@ export function SVGExportAddon(p5, fn, lifecycles) {
             renderer.image = original;
           };
         }
-      },
-    }
-  }
+      }
+    };
+  };
 
   // Captures the current active drawing state (fill color, stroke color, stroke weight, stroke cap,
   // and cumulative transformation matrix) at the exact moment a shape node is recorded.
@@ -283,6 +287,10 @@ export function SVGExportAddon(p5, fn, lifecycles) {
     }
 
     colorToSVG(color) {
+      if (color === 'currentColor') {
+        this._currentOpacity = 1;
+        return 'currentColor';
+      }
       if (!color) {
         this._currentOpacity = 1;
         return 'none';
@@ -291,8 +299,8 @@ export function SVGExportAddon(p5, fn, lifecycles) {
 
       this._currentOpacity = alpha / 255;
 
-          return color.toString('#rrggbb');
-      }
+      return color.toString('#rrggbb');
+    }
 
     _applyStyle(el) {
       const state = this.currentState;
@@ -941,18 +949,22 @@ export function SVGExportAddon(p5, fn, lifecycles) {
         p.applyMatrix(m.a, m.b, m.c, m.d, m.e, m.f);
       }
 
-      if (state.fill) {
-        const [r, g, b, a] = state.fill._getRGBA([255, 255, 255, 255]);
-        p.fill(r, g, b, a);
-      } else {
-        p.noFill();
+      if (state.fill !== 'currentColor') {
+        if (state.fill) {
+          const [r, g, b, a] = state.fill._getRGBA([255, 255, 255, 255]);
+          p.fill(r, g, b, a);
+        } else {
+          p.noFill();
+        }
       }
 
-      if (state.stroke) {
-        const [r, g, b, a] = state.stroke._getRGBA([255, 255, 255, 255]);
-        p.stroke(r, g, b, a);
-      } else {
-        p.noStroke();
+      if (state.stroke !== 'currentColor') {
+        if (state.stroke) {
+          const [r, g, b, a] = state.stroke._getRGBA([255, 255, 255, 255]);
+          p.stroke(r, g, b, a);
+        } else {
+          p.noStroke();
+        }
       }
 
       if (state.strokeWeight != null) {
