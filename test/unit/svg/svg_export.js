@@ -109,6 +109,9 @@ suite('SVGVisitor', function() {
     assert.strictEqual(visitor.colorToSVG(null), 'none');
     assert.strictEqual(visitor.colorToSVG(undefined), 'none');
 
+    // currentColor keyword
+    assert.strictEqual(visitor.colorToSVG('currentColor'), 'currentColor');
+
     // Color object with full opacity
     const blueColor = createMockColor(0, 0, 255, 255, '#0000ff');
     assert.strictEqual(visitor.colorToSVG(blueColor), '#0000ff');
@@ -154,6 +157,22 @@ suite('SVGVisitor', function() {
     assert.strictEqual(el.getAttribute('stroke'), '#0000ff');
     assert.strictEqual(el.getAttribute('stroke-width'), '3');
     assert.strictEqual(el.getAttribute('stroke-linecap'), 'square');
+  });
+
+  test('_applyStyle should preserve currentColor for fill and stroke', function() {
+    const pInst = createPInst();
+    const visitor = createVisitor(pInst);
+
+    const el = visitor._createElement('rect');
+    visitor.currentState = {
+      fill: 'currentColor',
+      stroke: 'currentColor',
+      strokeWeight: 2
+    };
+
+    visitor._applyStyle(el);
+    assert.strictEqual(el.getAttribute('fill'), 'currentColor');
+    assert.strictEqual(el.getAttribute('stroke'), 'currentColor');
   });
 
   test('_appendShapeElement should wrap with matrix group if transform is not identity', function() {

@@ -97,7 +97,7 @@ suite('ShapeRecorder', function() {
     const shapeNode = record.data.children[1];
     assert.strictEqual(shapeNode.type, 'shape');
     assert.strictEqual(shapeNode.shape, shape);
-    assert.strictEqual(shapeNode.state.fill, 'red');
+    assert.strictEqual(shapeNode.state.fill, 'currentColor');
 
     const clearNode = record.data.children[2];
     assert.strictEqual(clearNode.type, 'clear');

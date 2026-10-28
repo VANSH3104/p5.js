@@ -6,6 +6,18 @@ function setupDefault(p) {
   p.fill(255);
   p.stroke(0);
   p.strokeWeight(1);
+
+  const origBuildShape = p.buildShape;
+  p.buildShape = function (callback, ...args) {
+    return origBuildShape.call(p, () => {
+      p.fill(255);
+      p.stroke(0);
+      p.strokeWeight(1);
+      if (typeof callback === 'function') {
+        callback();
+      }
+    }, ...args);
+  };
 }
 
 async function screenshotSVG(p, screenshot, svgString) {
@@ -1111,6 +1123,35 @@ visualSuite('svg', function () {
       p.shape(record, 50, 50, { align: p.CENTER });
       console.warn = orig;
       assert.isTrue(warnings.some(w => w.includes('CENTER alignment')));
+      await screenshot();
+    });
+  });
+
+  visualSuite('currentColor inheritance', function () {
+    visualTest('createSVG currentColor inherits active fill and stroke', async (p, screenshot) => {
+      p.createCanvas(200, 200);
+      p.background(220);
+      const svgIcon = p.createSVG(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+          <circle cx="50" cy="50" r="35" fill="currentColor" stroke="currentColor" stroke-width="4" />
+        </svg>
+      `);
+      p.fill(255, 0, 0);
+      p.stroke(0, 0, 255);
+      p.shape(svgIcon, 50, 50);
+      await screenshot();
+    });
+
+    visualTest('buildShape unstyled inherits active canvas fill and stroke', async (p, screenshot) => {
+      p.createCanvas(200, 200);
+      p.background(220);
+      const unstyled = p.buildShape(() => {
+        p.circle(50, 50, 70);
+      });
+      p.fill(0, 180, 0);
+      p.stroke(255, 120, 0);
+      p.strokeWeight(4);
+      p.shape(unstyled, 50, 50);
       await screenshot();
     });
   });

@@ -110,6 +110,37 @@ suite('StyleResolver', function () {
     assert.isNull(firstChild(record).state.fill);
   });
 
+  test('fill="currentColor" produces "currentColor" when no ancestor color is set', function () {
+    const record = createSVG(`
+      <svg xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="30" fill="currentColor"/>
+      </svg>
+    `);
+    const node = firstChild(record);
+    assert.strictEqual(node.state.fill, 'currentColor');
+  });
+
+  test('stroke="currentColor" produces "currentColor" when no ancestor color is set', function () {
+    const record = createSVG(`
+      <svg xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="30" stroke="currentColor"/>
+      </svg>
+    `);
+    const node = firstChild(record);
+    assert.strictEqual(node.state.stroke, 'currentColor');
+  });
+
+  test('fill="currentColor" resolves to CSS color when ancestor color is set', function () {
+    const record = createSVG(`
+      <svg xmlns="http://www.w3.org/2000/svg" style="color: red;">
+        <circle cx="50" cy="50" r="30" fill="currentColor"/>
+      </svg>
+    `);
+    const node = firstChild(record);
+    assert.isNotNull(node.state.fill);
+    assert.notStrictEqual(node.state.fill, 'currentColor');
+  });
+
   test('stroke attribute produces non-null stroke', function () {
     const record = createSVG(`
       <svg xmlns="http://www.w3.org/2000/svg">
